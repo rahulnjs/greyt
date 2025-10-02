@@ -52,11 +52,10 @@ test("on login page", async ({ page }) => {
     const d = responseData[apis[1]].currentDate;
     const isHoliday = (hl as string[]).find((_d) => _d === d) !== undefined;
     const isWeekend = [0, 6].indexOf(new Date(d).getDay()) !== -1;
-    return isHoliday || isWeekend;
+    return { isHoliday, isWeekend, shouldSkip: isHoliday || isWeekend };
   };
 
   const getCurrentDateString = () => responseData[apis[1]].currentDate;
-  const getCurrentDate = () => new Date(getCurrentDateString());
 
   page.on("response", async (response) => {
     const parts = response.url().split("/");
@@ -88,8 +87,9 @@ test("on login page", async ({ page }) => {
 
   doc.user = String(process.env.grey_usr);
   doc.date = getCurrentDateString();
+  const hlWk = isHolidayOrWeekend();
 
-  if (!isHolidayOrWeekend()) {
+  if (!hlWk.shouldSkip) {
     const signInOutBtn = await page
       .locator("gt-button button.btn.btn-primary.btn-medium")
       .first();
@@ -136,7 +136,9 @@ test("on login page", async ({ page }) => {
   } else {
     log.push({
       at: new Date().toISOString(),
-      msg: "Skipping login due to holiday/weekend on " + getCurrentDateString(),
+      msg:
+        `Skipping login due to ${hlWk.isHoliday ? "holiday" : "weekend"} on ` +
+        getCurrentDateString(),
     });
     await page.getByTitle("Logout").click();
     await expect(page.getByText("😊")).toBeVisible();

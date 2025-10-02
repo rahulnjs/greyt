@@ -3,7 +3,7 @@ import time as TimeLib
 from datetime import datetime
 import subprocess
 
-auto_run_times = ["9:45", "09:45", "18:45",]
+auto_run_times = ["09:45", "18:45",]
 
 with keep.running():
     while True: 
